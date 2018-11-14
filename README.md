@@ -1,2 +1,2 @@
-# MagicBricks
-Game of magic bricks implemented in Java for fun!
+# FormatterUtility
+Format the text you have, offline!
