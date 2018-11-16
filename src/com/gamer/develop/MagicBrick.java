@@ -1,8 +1,8 @@
 package com.gamer.develop;
 
 import java.awt.FlowLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import org.xml.sax.SAXException;
 public class MagicBrick {
 
 	private static final String ENTER_VALID_XML = "Enter valid XML";
-	private static final String FORMAT_BUTTON_LABEL = "Format";
+	private static final String FORMAT_BUTTON_LABEL = "Format and Copy To Clipboard";
 	private static final String CUSTOM_FORMATTER = "Custom Formatter";
 	private static final String ENTER_XML_HERE = "Enter XML Here";
 
@@ -49,48 +49,57 @@ public class MagicBrick {
 
 		FlowLayout fl = new FlowLayout(100, 50, 40);
 		final JFrame f = new JFrame(CUSTOM_FORMATTER);
+		final JButton formatXMLButton = new JButton(FORMAT_BUTTON_LABEL);
 		final JTextArea t1;
-		t1 = new JTextArea(ENTER_XML_HERE, 10, 10);
+		t1 = new JTextArea(ENTER_XML_HERE, 40, 40);
 		t1.setLineWrap(false);
 		JScrollPane scroll = new JScrollPane(t1);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		
-		t1.addMouseListener(new MouseAdapter() {
+
+		t1.addFocusListener(new FocusListener() {
+
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void focusGained(FocusEvent e) {
 				if (t1.getText().equals(ENTER_XML_HERE)) {
 					t1.setText("");
 					t1.repaint();
 				}
+				f.add(formatXMLButton);
 			}
-		});
-		t1.addKeyListener(new KeyAdapter() {
+
 			@Override
-			public void keyTyped(KeyEvent e) {
-				super.keyTyped(e);
-				t1.repaint();
+			public void focusLost(FocusEvent e) {
+				if (t1.getText().trim().equals("")) {
+					t1.setText(ENTER_XML_HERE);
+					t1.repaint();
+				}
 			}
 		});
 
-		JButton button = new JButton(FORMAT_BUTTON_LABEL);
-		button.addMouseListener(new MouseAdapter() {
+		formatXMLButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					t1.setText(prettyPrint(toXmlDocument(t1.getText().replaceAll("\\r\\n|\\r|\\n", ""))));
+					String preprocessStr = t1.getText().replaceAll("\\r\\n|\\r|\\n", "");
+					preprocessStr = preprocessStr.replaceAll("\\s{2,}<", "<");
+					String prettyXML = prettyPrint(toXmlDocument(preprocessStr));
+					t1.setText(prettyXML);
 				} catch (Exception e1) {
 					t1.setText(ENTER_VALID_XML);
 				}
-				f.repaint();
+				t1.repaint();
 			}
 		});
-		button.setBounds(70, 100, 10, 10);
+		formatXMLButton.setBounds(70, 100, 10, 10);
 		f.getContentPane().setLayout(fl);
 		f.add(scroll);
-		f.add(button);
-		f.setSize(600, 600);
+		f.add(formatXMLButton);
+		f.setSize(900, 900);
 		f.setVisible(true);
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.repaint();
+
 	}
 
 	private static String prettyPrint(Document document) throws TransformerException {
